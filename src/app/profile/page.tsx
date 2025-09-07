@@ -6,6 +6,7 @@ import {useUser} from '../context/UserContext'
 import {Card, CardContent} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog'
+import Image from 'next/image'
 
 export default function ProfilePage() {
     const {user, logout} = useUser()
@@ -32,7 +33,13 @@ export default function ProfilePage() {
             <Card className='max-w-lg w-full shadow-lg bg-blue-200'>
                 <CardContent className='space-y-4'>
                     <div className='flex flex-col items-center '>
-                        <img src={user.picture.large} alt='profile' className='w-24 h-24 rounded-full border' />
+                        <Image
+                            src={user.picture.large}
+                            alt='profile'
+                            width={96}
+                            height={96}
+                            className='rounded-full border'
+                        />
                         <h2 className='text-xl font-bold mt-3 flex items-center gap-3'>
                             {user.name.first} {user.name.last}
                             {/* دکمه باز کردن مودال */}
