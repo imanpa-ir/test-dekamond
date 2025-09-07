@@ -34,7 +34,7 @@ export default function ProfilePage() {
                 <CardContent className='space-y-4'>
                     <div className='flex flex-col items-center '>
                         <Image
-                            src={user.picture.large}
+                            src={user.picture.medium}
                             alt='profile'
                             width={96}
                             height={96}
