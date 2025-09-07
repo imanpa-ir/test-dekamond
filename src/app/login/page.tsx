@@ -12,7 +12,6 @@ import axios from 'axios'
 import {useRouter} from 'next/navigation'
 import {useUser} from '../context/UserContext'
 
-// ✅ اعتبارسنجی
 const validationSchema = Yup.object({
     mobile: Yup.string()
         .required('شماره موبایل الزامی است')
@@ -21,7 +20,7 @@ const validationSchema = Yup.object({
 })
 
 export default function LoginPage() {
-    const [loading, setLoading] = useState(true) // 🔹 اول لودینگ
+    const [loading, setLoading] = useState(true)
     const [formLoading, setFormLoading] = useState(false)
     const [error, setError] = useState('')
     const router = useRouter()
@@ -30,32 +29,35 @@ export default function LoginPage() {
     // 🔹 بررسی localStorage قبل از نمایش صفحه
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (user && user.name && user.email && user.picture) {
-                router.replace('/profile')
-            }
+            if (user) router.replace('/profile')
             setLoading(false)
-        }, 700) // شبیه اسپلش
-
+        }, 500)
         return () => clearTimeout(timer)
     }, [user, router])
 
     const formik = useFormik({
-        initialValues: {
-            mobile: '',
-            password: '',
-            remember: false,
-        },
+        initialValues: {mobile: '', password: '', remember: false},
         validationSchema,
-        onSubmit: async () => {
+        onSubmit: async (values) => {
             setFormLoading(true)
             setError('')
-
             try {
                 const res = await axios.get('https://randomuser.me/api/?results=1&nat=ir')
                 const userData = res.data.results[0]
                 setUser(userData)
+                localStorage.setItem(
+                    'user',
+                    JSON.stringify({
+                        name: `${userData.name.first} ${userData.name.last}`,
+                        email: userData.email,
+                        picture: {
+                            large: userData.picture.large,
+                        },
+                        fullData: userData, // 🔹 ذخیره کل اطلاعات
+                    })
+                )
                 router.push('/profile')
-            } catch (err) {
+            } catch {
                 setError('خطا در دریافت اطلاعات کاربر')
             } finally {
                 setFormLoading(false)
@@ -63,11 +65,10 @@ export default function LoginPage() {
         },
     })
 
-    // 🔹 اسپلش لودینگ
     if (loading) {
         return (
             <div className='min-h-screen flex items-center justify-center bg-custom-dark'>
-                <div className='animate-spin rounded-full h-16 w-16 border-4 border-yellow-400 border-t-transparent'></div>
+                <div className='animate-spin rounded-full h-16 w-16 border-4 border-customYellow border-t-transparent'></div>
             </div>
         )
     }
@@ -76,9 +77,7 @@ export default function LoginPage() {
         <div className='bg-custom-dark min-h-screen flex items-center justify-center p-4'>
             <div className='bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in'>
                 <h1 className='text-2xl font-bold text-center mb-6'>ورود</h1>
-
                 <form onSubmit={formik.handleSubmit} className='space-y-5'>
-                    {/* موبایل */}
                     <div className='space-y-1'>
                         <Label htmlFor='mobile'>شماره موبایل</Label>
                         <Input
@@ -95,7 +94,6 @@ export default function LoginPage() {
                         )}
                     </div>
 
-                    {/* رمز عبور */}
                     <div className='space-y-1'>
                         <Label htmlFor='password'>رمز عبور</Label>
                         <Input
@@ -112,7 +110,6 @@ export default function LoginPage() {
                         )}
                     </div>
 
-                    {/* مرا به خاطر بسپار */}
                     <div className='flex items-center justify-between'>
                         <div className='flex items-center space-x-2'>
                             <Checkbox

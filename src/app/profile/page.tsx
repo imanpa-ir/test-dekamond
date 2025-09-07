@@ -1,111 +1,100 @@
 'use client'
 
-import {useEffect} from 'react'
-import {useRouter} from 'next/navigation'
+import {useEffect, useState} from 'react'
 import {useUser} from '../context/UserContext'
-import {Card, CardContent} from '@/components/ui/card'
-import {Button} from '@/components/ui/button'
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog'
+import {useRouter} from 'next/navigation'
 import Image from 'next/image'
+import {Button} from '@/components/ui/button'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog'
 
 export default function ProfilePage() {
-    const {user, logout} = useUser()
+    const {user, logout, setUser} = useUser()
     const router = useRouter()
+    const [loading, setLoading] = useState(true)
+    const fullUser = user?.fullData || user
 
-    //  بررسی بعد از رفرش
     useEffect(() => {
-        if (!user || !user.name || !user.email || !user.picture) {
+        const stored = localStorage.getItem('user')
+        if (stored && !user) {
+            const parsed = JSON.parse(stored)
+            setUser(parsed.fullData || parsed)
+        } else if (!stored) {
             router.replace('/login')
         }
-    }, [user, router])
+        setLoading(false)
+    }, [router, setUser, user])
 
-    if (!user || !user.name || !user.email || !user.picture) {
-        return null
-    }
-
-    const handleLogout = () => {
-        logout()
-        router.push('/login')
+    if (loading || !user) {
+        return (
+            <div className='flex items-center justify-center min-h-screen bg-custom-dark'>
+                <div className='animate-spin rounded-full h-16 w-16 border-4 border-customYellow border-t-transparent'></div>
+            </div>
+        )
     }
 
     return (
-        <div className='min-h-screen bg-custom-dark flex items-center justify-center p-6'>
-            <Card className='max-w-lg w-full shadow-lg bg-blue-200'>
-                <CardContent className='space-y-4'>
-                    <div className='flex flex-col items-center '>
-                        <Image
-                            src={user.picture.medium}
-                            alt='profile'
-                            width={96}
-                            height={96}
-                            className='rounded-full border'
-                        />
-                        <h2 className='text-xl font-bold mt-3 flex items-center gap-3'>
-                            {user.name.first} {user.name.last}
-                            {/* دکمه باز کردن مودال */}
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant='outline' size='sm'>
-                                        اطلاعات کامل
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className='max-w-2xl max-h-[80vh] overflow-y-auto bg-blue-400 text-white'>
-                                    <DialogHeader>
-                                        <DialogTitle>اطلاعات کامل کاربر</DialogTitle>
-                                    </DialogHeader>
+        <div className='min-h-screen bg-custom-dark flex flex-col items-center p-4'>
+            <div className='bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full animate-fade-in'>
+                <div className='flex flex-col items-center'>
+                    <Image
+                        src={user.picture.large}
+                        alt='profile'
+                        width={120}
+                        height={120}
+                        className='rounded-full border border-customDark'
+                    />
+                    <h2 className='text-xl font-bold mt-4'>
+                        {user.name.first} {user.name.last}
+                    </h2>
+                    <p className='text-gray-600'>{user.email}</p>
+                </div>
 
-                                    <div className='space-y-3 text-sm'>
-                                        <p>
-                                            <b>نام:</b> {user.name.title} {user.name.first} {user.name.last}
-                                        </p>
-                                        <p>
-                                            <b>ایمیل:</b> {user.email}
-                                        </p>
-                                        <p>
-                                            <b>موبایل:</b> {user.cell}
-                                        </p>
-                                        <p>
-                                            <b>تلفن ثابت:</b> {user.phone}
-                                        </p>
-                                        <p>
-                                            <b>جنسیت:</b> {user.gender === 'male' ? 'مرد' : 'زن'}
-                                        </p>
-                                        <p>
-                                            <b>سن:</b> {user.dob.age}
-                                        </p>
-                                        <p>
-                                            <b>تاریخ تولد:</b> {new Date(user.dob.date).toLocaleDateString('fa-IR')}
-                                        </p>
-                                        <p>
-                                            <b>شهر:</b> {user.location.city}
-                                        </p>
-                                        <p>
-                                            <b>استان:</b> {user.location.state}
-                                        </p>
-                                        <p>
-                                            <b>کشور:</b> {user.location.country}
-                                        </p>
-                                        <p>
-                                            <b>کدپستی:</b> {user.location.postcode}
-                                        </p>
-                                        <p>
-                                            <b>خیابان:</b> {user.location.street.name} {user.location.street.number}
-                                        </p>
-                                        <p>
-                                            <b>ملیت:</b> {user.nat}
-                                        </p>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                        </h2>
-                        <p className='text-gray-500'>{user.email}</p>
-                    </div>
+                <div className='flex justify-between mt-6'>
+                    {/* Dialog برای اطلاعات کامل */}
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant='outline'>اطلاعات کامل</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>اطلاعات کامل کاربر</DialogTitle>
+                            </DialogHeader>
+                            <DialogDescription className='space-y-2 mt-2'>
+                                <>
+                                    <p>
+                                        نام کامل: {fullUser.name.title} {fullUser.name.first} {fullUser.name.last}
+                                    </p>
+                                    <p>ایمیل: {fullUser.email}</p>
+                                    <p>شماره موبایل: {fullUser.cell}</p>
+                                    <p>
+                                        تاریخ تولد:{' '}
+                                        {fullUser.dob?.date
+                                            ? new Date(fullUser.dob.date).toLocaleDateString()
+                                            : 'نامشخص'}
+                                    </p>
+                                    <p>کشور: {fullUser.location?.country || 'نامشخص'}</p>
+                                    <p>شهر: {fullUser.location?.city || 'نامشخص'}</p>
+                                    <p>
+                                        نشانی: {fullUser.location?.street?.number}{' '}
+                                        {fullUser.location?.street?.name || ''}
+                                    </p>
+                                </>
+                            </DialogDescription>
+                        </DialogContent>
+                    </Dialog>
 
-                    <Button onClick={handleLogout} className='w-full bg-red-500 hover:bg-red-600 text-white'>
-                        خروج از حساب
+                    <Button variant='destructive' onClick={logout}>
+                        خروج
                     </Button>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     )
 }
